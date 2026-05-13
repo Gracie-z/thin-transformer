@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.pth
+*.pt
+loss_curves.png
+.DS_Store
