@@ -1,5 +1,8 @@
 # Slimming the Transformer
 
+Class project (Stats 305B/C, Stanford) extending the transformer baseline from
+[Linderman, HW4](https://slinderman.github.io/stats305b/assignments/hw4/hw4.html).
+
 Experiments compressing a GPT-style transformer for Python code generation via two techniques: **low-rank feedforward approximation** and **knowledge distillation** from `codeparrot-small`.
 
 ## Methods
@@ -76,6 +79,10 @@ Saves per-run loss plots (`distill_a{α}_t{T}.png`) and prints a validation loss
 | `--alpha` | `0.1 0.3 0.5 0.7` | NLL weight(s); 1.0 = no distillation |
 | `--temperature` | `0.8 1.0 2.0 3.0` | Softmax temperature(s) |
 | `--iters` | `1000` | Training iterations per run |
+
+## Credits
+
+Transformer baseline adapted from [Linderman, Stats 305B HW4](https://slinderman.github.io/stats305b/assignments/hw4/hw4.html).
 
 ## Files
 
