@@ -1,5 +1,6 @@
 torch>=2.0
 transformers>=4.35
+datasets>=2.14
 pandas
 matplotlib
 tqdm

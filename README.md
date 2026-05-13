@@ -1,18 +1,26 @@
-# Low-Rank Transformers for Code Generation
+# Slimming the Transformer
 
-Experiments comparing a standard GPT-style transformer against a variant where the feedforward sublayer uses a low-rank weight factorization, trained on a Python code corpus.
+Experiments compressing a GPT-style transformer for Python code generation via two techniques: **low-rank feedforward approximation** and **knowledge distillation** from `codeparrot-small`.
 
-## Method
+## Methods
 
-Standard transformer feedforward blocks use a two-layer MLP with a 4× hidden expansion (8D² parameters per layer). We replace this with a rank-r bottleneck:
+### Low-rank approximation
+The standard feedforward sublayer (two linear layers, 8D² parameters) is replaced with a rank-r bottleneck:
 
 ```
 output = relu(x W₁) W₂,   W₁ ∈ ℝ^{D×r},  W₂ ∈ ℝ^{r×D}
 ```
 
-Parameter cost: 2Dr vs 8D². Break-even at r = 4D; below that, the low-rank layer is smaller.
+Parameter count: 2Dr vs 8D². At D=384 and r=576 (default) this is a **37% reduction** per feedforward layer.
 
-With D = 384 and r = 576 (default), each feedforward block uses **37% fewer parameters** than the standard version.
+### Knowledge distillation
+The student (our small transformer) is trained to mimic `codeparrot-small` using a combined loss (Hinton et al., 2015):
+
+```
+L = α · L_NLL  +  (1 − α) · T² · KL( softmax(s/T) ‖ softmax(t/T) )
+```
+
+where s and t are student and teacher logits, α controls the teacher/ground-truth trade-off, and T is the softmax temperature.
 
 ## Setup
 
@@ -20,11 +28,13 @@ With D = 384 and r = 576 (default), each feedforward block uses **37% fewer para
 pip install -r requirements.txt
 ```
 
-Requires a GPU (CUDA). Training on the full corpus (~4 M tokens) takes roughly 30 min per model on a T4.
+Requires a CUDA GPU. Training each model takes roughly 5–10 min on a T4.
 
 ## Usage
 
-Train and compare both models:
+### Low-rank approximation
+
+Train and compare baseline vs low-rank transformer on the Python corpus:
 
 ```bash
 python train.py --model both --iters 2000
@@ -36,9 +46,7 @@ Train only the low-rank model with a custom rank:
 python train.py --model lowrank --rank 300 --iters 2000
 ```
 
-Add `--generate` to print text samples after training.
-
-### Arguments
+Add `--generate` to print text samples after training. Saves `loss_curves.png`.
 
 | Argument | Default | Description |
 |----------|---------|-------------|
@@ -47,12 +55,33 @@ Add `--generate` to print text samples after training.
 | `--iters` | `2000` | Training iterations |
 | `--generate` | off | Generate text samples after training |
 
-Outputs a `loss_curves.png` with training loss for each model.
+### Knowledge distillation
+
+Run the full α × T grid search (16 runs):
+
+```bash
+python distill.py
+```
+
+Run a specific configuration:
+
+```bash
+python distill.py --alpha 0.7 --temperature 0.8 --iters 1000
+```
+
+Saves per-run loss plots (`distill_a{α}_t{T}.png`) and prints a validation loss table.
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--alpha` | `0.1 0.3 0.5 0.7` | NLL weight(s); 1.0 = no distillation |
+| `--temperature` | `0.8 1.0 2.0 3.0` | Softmax temperature(s) |
+| `--iters` | `1000` | Training iterations per run |
 
 ## Files
 
 | File | Description |
 |------|-------------|
-| `data.py` | Data loading, tokenization, vocabulary construction, data utilities |
+| `data.py` | Data loading for the low-rank experiment (CodeBERT tokenizer, Python corpus CSV) |
 | `models.py` | `TransformerLM`, `LowRankTransformerLM`, and shared components |
-| `train.py` | Training loop, evaluation, and text generation |
+| `train.py` | Low-rank experiment: training, evaluation, text generation |
+| `distill.py` | Knowledge distillation experiment: grid search over α and T |
