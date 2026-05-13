@@ -1,6 +1,6 @@
 # Slimming the Transformer
 
-Class project (Stats 305B/C, Stanford) extending the transformer baseline from
+Class project (Stats 305B, Stanford) extending the transformer baseline from
 [Linderman, HW4](https://slinderman.github.io/stats305b/assignments/hw4/hw4.html).
 
 Experiments compressing a GPT-style transformer for Python code generation via two techniques: **low-rank feedforward approximation** and **knowledge distillation** from `codeparrot-small`.
