@@ -14,7 +14,7 @@ The standard feedforward sublayer (two linear layers, 8D² parameters) is replac
 output = relu(x W₁) W₂,   W₁ ∈ ℝ^{D×r},  W₂ ∈ ℝ^{r×D}
 ```
 
-Parameter count: 2Dr vs 8D². At D=384 and r=576 (default) this is a **37% reduction** per feedforward layer.
+Parameter count: 2Dr vs 8D². At D=384 and r=576 (default) each feedforward layer retains 37.5% of its original parameters (**62.5% fewer FFN params**), reducing total model size from ~31M to ~26.7M parameters (~14% overall).
 
 ### Knowledge distillation
 The student (our small transformer) is trained to mimic `codeparrot-small` using a combined loss (Hinton et al., 2015):
